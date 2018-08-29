@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+ts="Time-stamp: <2018-08-29 17:15:01 emartin>"; ts=${ts#Time-stamp: }
+version="0.1"
+#
+# Copyright (c) 2018  Érik Martin-Dorel
+#
+# Licensed under BSD-3 <https://opensource.org/licenses/BSD-3-Clause>
+#
+# Report bugs to: https://github.com/erikmd/tpenv/issues
+
+die_hard() {
+    printf "%b " "$@" >&2
+    exit 1
+}
+
+usage() {
+    cat >&2 <<EOF
+tpenv $version $ts
+
+EOF
+}
+
+netdir="$HOME/Documents"
+
+usage
+
+die_hard "netdir:" "$netdir"
+
+# Put this script in $netdir/bin, which should be in the $PATH
+#
+# help command:
+# - Run usage
+#
+# sync (default) command:
+# - Check if $netdir exists (otherwise die_hard)
+# - If $netdir/_tpenv doesn’t exists: Echo warning; Run init_empty
+# - Retrieve the paths of $netdir/_tpenv; Echo (number of) custom incl./excl.
+# - Foreach path $p:
+#   - If $HOME/$p doesn’t exist & $netdir/$p doesn’t exist: Echo no-op
+#   - If $HOME/$p exists & $netdir/$p doesn’t exist: Move(§); Symlink
+#   - If $HOME/$p exists & $netdir/$p exists & symlink: No-op
+#   - If $HOME/$p exists & $netdir/$p exists & no-ln: Rename-Left+Echo; Symlink
+#   - If $HOME/$p doesn’t exist & $netdir/$p exists: Symlink
+# (§)Remark: the move step could be done using mv, or something else…
+#
+# init_empty algorithm:
+# - Copy default file contents to $netdir/_tpenv
+#
+# upgrade command:
+# - curl -OL https://github.com/erikmd/tpenv/raw/master/tpenv; chmod a+x tpenv
+# - Echo status (if the new script is different)
+# - Check if $netdir exists (otherwise die_hard)
+# - If $netdir/_tpenv exists:
+#   - Check if its format changed and should be migrated
+#   - Update the standard list field, don’t touch the includes, excludes fields
+#   - Echo status (if _tpenv changed)
+# - If $netdir/_tpenv doesn’t exists: Echo warning; Run init_empty
+#
+# _tpenv=_tpenv.json:
+# { "version": "1",
+#   "standard": [ ".bashrc", ... ], "includes": [], "excludes": [] }
+#
+# or _tpenv is a folder with 3 files:
+# _tpenv/std_includes.txt
+# _tpenv/custom_includes.txt
+# _tpenv/custom_excludes.txt
+# supporting #-based comments (with a description)
+#
+# Remarks:
+# Check whether EOLs are Linux or Windows-specific ?
+# Other checks ?
+# Check if tpenv itself is in $netdir/bin ?
+# Fail if run from Windows ?
