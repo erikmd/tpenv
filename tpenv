@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 19:36:21 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 19:47:43 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -230,11 +230,14 @@ usage() {
     cat >&2 <<EOF
 
 Syntaxe :
-  $prog [-v] # crée ou met à jour les liens symboliques
-             # entre ~/ et $netdir
+  $prog  # initialise la configuration lors de la première exécution
+  $prog  # crée ou met à jour les liens symboliques spécifiés
+         # entre ~/ et $netsubdir
+
+  $prog -v  # mode davantage verbeux
 
   $prog --upgrade  # met à jour le script $prog
-                   # et la liste des liens symboliques à inclure
+                   # et la liste standard des liens symboliques
 
   $prog --version  # affiche la version
 
@@ -243,21 +246,26 @@ Syntaxe :
 Résumé :
   $prog est un script permettant de sauvegarder l'environnement local
   de TP (dossiers ou fichiers à la racine du répertoire ~/) en créant
-  des liens symboliques vers le dossier $netdir,
+  des liens symboliques vers le dossier $netsubdir,
   celui-ci étant synchronisé.
 
   Il suffit d'exécuter la commande $prog dans un terminal, une fois
-  durant le TP sous Linux (par exemple au début de la séance).
+  durant le TP sous Linux (au moins à la fin de la première séance, puis
+  au début de chaque nouvelle séance).
 
   La liste des fichiers ou dossiers devant être ainsi sauvegardés est
-  stockées dans 3 fichiers :
+  stockée dans 3 fichiers :
     $f_std  # liste standard
     $f_includes
     $f_excludes
 
-  La commande "$prog --upgrade" permet de mettre à jour la liste standard.
+  La commande '$prog --upgrade' permet de mettre à jour le script et
+  la liste standard.
   Si besoin, vous pouvez modifier les 2 derniers fichiers (initialement vides)
   pour spécifier une liste personnalisée de chemins à inclure ou exclure.
+
+  Pour plus de facilité, placez le script $prog dans le dossier
+  $netsubdir/bin (qui est synchronisé).
 EOF
 }
 
