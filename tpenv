@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 19:22:13 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 19:32:23 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -30,6 +30,19 @@ curl_error="Erreur: Problème réseau ?"
 
 check_windows() {
     [ "$(uname -s)" = "Linux" ] || die_hard "Erreur: ce script est conçu pour Linux uniquement."
+}
+
+warn_if_other_folder() {
+    local this srcdir
+    this="${BASH_SOURCE[0]}"
+    srcdir=$( cd "$( dirname "$script" )" >/dev/null && pwd )
+
+    if [ $srcdir != "$netsubdir/bin" ]; then
+        warn "\nWarning: $prog n'est pas dans le dossier standard. Pour y remédier :"
+        [ -d "$netsubdir/bin" ] || warn "  mkdir $netsubdir/bin"
+        warn "  cp '$this' '$netsubdir/bin/$prog'"
+
+    fi
 }
 
 ensure_dir_exists() {
@@ -168,11 +181,13 @@ sync() {
         fi
     done
 
-    warn "Warning: les chemins suivants n'existent pas et n'ont pas été liés:"
+    warn "\nWarning: les chemins suivants n'existent pas et n'ont donc pas été liés:"
     for post in "${postponed[@]}"; do
         printf -- "- %s\n" "$post" >&2
     done
     warn "Si ceux-ci sont créés durant le TP, relancez $prog à la fin de la séance."
+
+    warn_if_other_folder
 }
 
 upgrade_config() {
@@ -201,6 +216,8 @@ upgrade() {
     fi
 
     upgrade_config
+
+    warn_if_other_folder
 }
 
 usage() {
@@ -321,4 +338,4 @@ main "$@"
 # Remarks:
 # * DONE Fail if run from Windows ?
 # * DONE Cope with Linux/Windows-specific EOLs
-# * Check if tpenv itself is in $netsubdir/bin ?
+# * DONE Check if tpenv itself is in $netsubdir/bin
