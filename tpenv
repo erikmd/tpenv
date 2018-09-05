@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 15:18:15 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 19:16:00 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -130,6 +130,7 @@ sync() {
         done
     fi
 
+# - Foreach path $p:
 #   - If $HOME/$p doesn’t exist & $netsubdir/$p doesn’t exist: Echo no-op
 #   - If $HOME/$p exists & $netsubdir/$p doesn’t exist: Move(§); Symlink
 #   - If $HOME/$p exists & $netsubdir/$p exists & symlink: No-op
@@ -171,17 +172,32 @@ sync() {
     warn "Si ceux-ci sont créés durant le TP, relancez $prog à la fin de la séance."
 }
 
+upgrade_config() {
+    ensure_dir_exists "$netsubdir"
+    ensure_dir_exists "$config"
+
+    curl -o "$f_std.new" -L "$url/std_includes.txt"
+
+    if ! diff -q -- "$f_std" "$f_std.new"; then
+        warn "Info: La configuration '$f_std' a été mise à jour:"
+        diff -- "$f_std" "$f_std.new"
+        mv -v -f -- "$f_std.new" "$f_std"
+    fi
+}
+
 upgrade() {
-    :
-# upgrade command:
-# - curl -OL https://github.com/erikmd/tpenv/raw/master/tpenv; chmod a+x tpenv
-# - Echo status (if the new script is different)
-# - Check if $netdir exists (otherwise die_hard)
-# - If $netdir/_tpenv exists:
-#   - Check if its format changed and should be migrated
-#   - Update the standard list field, don’t touch the includes, excludes fields
-#   - Echo status (if _tpenv changed)
-# - If $netdir/_tpenv doesn’t exists: Echo warning; Run init_empty
+    local src
+    src=$( readlink -f "${BASH_SOURCE[0]}" )
+
+    curl -o "$src.new" -L "$url/tpenv"
+
+    if ! diff -q -- "$src" "$src.new"; then
+        mv -f -- "$src.new" "$src"
+        chmod a+x "$src"
+        warn "Info: $prog a été mis à jour (cf.  $prog --version)"
+    fi
+
+    upgrade_config
 }
 
 usage() {
@@ -250,13 +266,15 @@ main() {
             sync
             ;;
         "upgrade")
-            die_hard "Upgrade: not implemented."
+            upgrade
             ;;
     esac
 }
 
 main "$@"
 
+# Design/pseudo-code
+#
 # Put this script in $netsubdir/bin, which should be in the $PATH
 #
 # help command:
