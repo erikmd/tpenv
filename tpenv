@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 19:47:43 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 21:00:53 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -194,12 +194,15 @@ upgrade_config() {
     ensure_dir_exists "$netsubdir"
     ensure_dir_exists "$config"
 
+    rm -f -- "$f_std.new"
     curl -o "$f_std.new" -L "$url/std_includes.txt" || { ret=$?; warn "$curl_error"; exit $ret; }
 
     if ! diff -q -- "$f_std" "$f_std.new"; then
         warn "# La configuration '$f_std' a été mise à jour:"
         diff -- "$f_std" "$f_std.new"
         mv -v -f -- "$f_std.new" "$f_std"
+    else
+        rm -f -- "$f_std.new"
     fi
 }
 
@@ -207,12 +210,15 @@ upgrade() {
     local src
     src=$( readlink -f "${BASH_SOURCE[0]}" )
 
+    rm -f -- "$src.new"
     curl -o "$src.new" -L "$url/tpenv" || { ret=$?; warn "$curl_error"; exit $ret; }
 
     if ! diff -q -- "$src" "$src.new"; then
         mv -f -- "$src.new" "$src"
         chmod a+x "$src"
-        warn "# $prog a été mis à jour (cf.  $prog --version)"
+        warn "# $prog a été mis à jour (cf.  $prog --version)\n"
+    else
+        rm -f -- "$src.new"
     fi
 
     upgrade_config
