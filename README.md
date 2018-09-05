@@ -1,5 +1,15 @@
 # tpenv
 
+## Installation
+
+Exécuter dans un terminal :
+
+```
+mkdir -p ~/Documents/Linux/bin && cd ~/Documents/Linux/bin
+curl -OL https://github.com/erikmd/tpenv/raw/master/tpenv && chmod a+x tpenv
+./tpenv
+```
+
 ## Syntaxe
 
 ```
