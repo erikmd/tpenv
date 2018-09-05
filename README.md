@@ -34,7 +34,7 @@ au début de chaque nouvelle séance).
 La liste des fichiers ou dossiers devant être ainsi sauvegardés est
 stockée dans 3 fichiers :
 
-- `~/Documents/Linux/_tpenv/std_includes.txt` (liste standard)
+- `~/Documents/Linux/_tpenv/std_includes.txt` ([liste standard](./std_includes.txt))
 - `~/Documents/Linux/_tpenv/custom_includes.txt`
 - `~/Documents/Linux/_tpenv/custom_excludes.txt`
 
