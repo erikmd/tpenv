@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 21:00:53 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 21:51:02 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -35,9 +35,9 @@ check_windows() {
 warn_if_other_folder() {
     local this srcdir
     this="${BASH_SOURCE[0]}"
-    srcdir=$( cd "$( dirname "$script" )" >/dev/null && pwd )
+    srcdir=$( cd "$( dirname "$this" )" >/dev/null && pwd )
 
-    if [ $srcdir != "$netsubdir/bin" ]; then
+    if [ "$srcdir" != "$netsubdir/bin" ]; then
         warn "\nWarning: $prog n'est pas dans le dossier standard. Pour y remédier :"
         [ -d "$netsubdir/bin" ] || warn "  mkdir $netsubdir/bin"
         warn "  cp '$this' '$netsubdir/bin/$prog'"
