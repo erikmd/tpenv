@@ -23,7 +23,7 @@ tpenv --help
 ## Résumé
 
 `tpenv` est un script permettant de sauvegarder l'environnement local
-de TP (dossiers ou fichiers à la racine du répertoire ~/) en créant
+de TP (dossiers ou fichiers à la racine du répertoire `~/`) en créant
 des liens symboliques vers le dossier `~/Documents/Linux`,
 celui-ci étant synchronisé.
 
@@ -44,7 +44,7 @@ Si besoin, vous pouvez modifier les 2 derniers fichiers (initialement vides)
 pour spécifier une liste personnalisée de chemins à inclure ou exclure.
 
 Pour plus de facilité, placez le script tpenv dans le dossier
-~/Documents/Linux/bin (qui est synchronisé).
+`~/Documents/Linux/bin` (qui est synchronisé).
 
 ## Note aux enseignants
 
