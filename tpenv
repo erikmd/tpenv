@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 15:14:46 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 15:18:15 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -124,9 +124,9 @@ sync() {
     done
 
     if [ "$verbose" = "true" ]; then
-        warn "$prog prend en compte les fichier/dossiers suivants:"
+        warn "Info: $prog prend en compte les fichier/dossiers suivants:"
         for incl in "${includes[@]}"; do
-            printf "%s\n" "$incl" >&2
+            printf -- "- %s\n" "$incl" >&2
         done
     fi
 
