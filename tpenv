@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-08-29 17:15:01 emartin>"; ts=${ts#Time-stamp: }
-version="0.1"
+ts="Time-stamp: <2018-09-05 15:05:16 emartin>"; ts=${ts#Time-stamp: }
+version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
 #
@@ -9,43 +9,169 @@ version="0.1"
 # Report bugs to: https://github.com/erikmd/tpenv/issues
 
 die_hard() {
-    printf "%b " "$@" >&2
+    printf "%b\n" "$*" >&2
     exit 1
 }
 
-usage() {
-    cat >&2 <<EOF
-tpenv $version $ts
-
-EOF
+warn() {
+    printf "%b\n" "$*" >&2
 }
 
+prog="tpenv"
 netdir="$HOME/Documents"
+netsubdir="$netdir/Linux"
+config="$netsubdir/_tpenv"
+f_std="$config/std_includes.txt"
+f_includes="$config/custom_includes.txt"
+f_excludes="$config/custom_excludes.txt"
+url="https://github.com/erikmd/tpenv/raw/master"
+verbose="false"
 
-usage
+check_windows() {
+    [ "$(uname -s)" = "Linux" ] || die_hard "Erreur: ce script est conçu pour Linux uniquement."
+}
 
-die_hard "netdir:" "$netdir"
+ensure_dir_exists() {
+    local folder="$1"
+    if [ -d "$folder" ] && [ -w "$folder" ] && [ -x "$folder" ]; then
+        warn "Dossier '$folder'...OK"
+        # return 0
+    elif [ ! -e "$folder" ]; then
+        warn "Création du dossier '$folder'..."
+        mkdir "$folder" || die_hard "Erreur lors de la création de '$folder'."
+        # return 1
+    else
+        die_hard "Erreur: '$folder' n'est pas un dossier valide."
+    fi
+}
 
-# Put this script in $netdir/bin, which should be in the $PATH
-#
-# help command:
-# - Run usage
-#
-# sync (default) command:
-# - Check if $netdir exists (otherwise die_hard)
-# - If $netdir/_tpenv doesn’t exists: Echo warning; Run init_empty
-# - Retrieve the paths of $netdir/_tpenv; Echo (number of) custom incl./excl.
-# - Foreach path $p:
-#   - If $HOME/$p doesn’t exist & $netdir/$p doesn’t exist: Echo no-op
-#   - If $HOME/$p exists & $netdir/$p doesn’t exist: Move(§); Symlink
-#   - If $HOME/$p exists & $netdir/$p exists & symlink: No-op
-#   - If $HOME/$p exists & $netdir/$p exists & no-ln: Rename-Left+Echo; Symlink
-#   - If $HOME/$p doesn’t exist & $netdir/$p exists: Symlink
-# (§)Remark: the move step could be done using mv, or something else…
-#
-# init_empty algorithm:
-# - Copy default file contents to $netdir/_tpenv
-#
+check_config_or_init_empty() {
+    ensure_dir_exists "$netsubdir"
+    ensure_dir_exists "$config"
+
+    inspect="false"
+
+    if [ ! -f "$f_std" ]; then
+        ( set -x; curl -o "$f_std" -L "$url/std_includes.txt" )
+        inspect="true"
+    fi
+    if [ ! -f "$f_includes" ]; then
+        warn "Création du fichier '$f_includes'..."
+        touch "$f_includes"
+        inspect="true"
+    fi
+    if [ ! -f "$f_excludes" ]; then
+        warn "Création du fichier '$f_excludes'..."
+        touch "$f_excludes"
+        inspect="true"
+    fi
+
+    if [ "$inspect" = "true" ]; then
+        warn "La configuration initiale de $prog a été créée dans '$config'."
+        die_hard "Vous pouvez l'inspecter si nécessaire, puis relancer $prog."
+    fi
+}
+
+is_among() {
+    local arg="$1"
+    shift
+    local elt
+    for elt; do
+        if [ "$arg" = "$elt" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+check_unwanted_chars_in_line_of_file() {
+    local line="$1"
+    local file="$2"
+    [[ $line =~ [?*] ]] && die_hard "Erreur: caractères '?' et '*' interdits dans $file."
+    [[ $line =~ "/" ]] && die_hard "Erreur: caractère '/' interdit dans $file."
+    [[ $line = "#" ]] && die_hard "Erreur: caractère '#' interdit dans $file (sauf en début de ligne)."
+    [[ $line = "." ]] && die_hard "Erreur: dossier '.' interdit dans $file."
+    [[ $line = ".." ]] && die_hard "Erreur: dossier '..' interdit dans $file."
+}
+
+sync() {
+    [ -d "$netdir" ] || die_hard "Erreur: dossier '$netdir' inexistant."
+    check_config_or_init_empty
+
+    readarray -t raw_std < "$f_std"
+    readarray -t raw_includes < "$f_includes"
+    readarray -t raw_excludes < "$f_excludes"
+
+    declare -a includes
+    declare -a excludes
+    cr=$'\015'
+    # Remove comments and duplicates
+    for line in "${raw_excludes[@]}"; do
+        line=${line%$cr}  # skip trailing CR
+        if [[ ! $line =~ ^"#" ]] && ! is_among "$line" "${excludes[@]}"; then
+            check_unwanted_chars_in_line_of_file "$line" "'$f_excludes'"
+            excludes+=( "$line" )
+        fi
+    done
+    for line in "${raw_std[@]}" "${raw_includes[@]}"; do
+        line=${line%$cr}  # skip trailing CR
+        if [[ ! $line =~ ^"#" ]] && \
+               ! is_among "$line" "${includes[@]}" "${excludes[@]}"; then
+            check_unwanted_chars_in_line_of_file "$line" "'$f_std' et '$f_includes'"
+            includes+=( "$line" )
+        fi
+    done
+
+    if [ "$verbose" = "true" ]; then
+        warn "$prog prend en compte les fichier/dossiers suivants:"
+        for incl in "${includes[@]}"; do
+            printf "%s\n" "$incl" >&2
+        done
+    fi
+
+#   - If $HOME/$p doesn’t exist & $netsubdir/$p doesn’t exist: Echo no-op
+#   - If $HOME/$p exists & $netsubdir/$p doesn’t exist: Move(§); Symlink
+#   - If $HOME/$p exists & $netsubdir/$p exists & symlink: No-op
+#   - If $HOME/$p exists & $netsubdir/$p exists & no-ln: Rename-Left+Echo; Symlink
+#   - If $HOME/$p doesn’t exist & $netsubdir/$p exists: Symlink
+
+    declare -a postponed
+
+    for p in "${includes[@]}"; do
+        if [ ! -e "$HOME/$p" ] && [ ! -L "$HOME/$p" ]; then
+            if [ ! -e "$netsubdir/$p" ]; then
+                postponed+=( "$netsubdir/$p" )
+            else
+                echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p$"
+            fi
+        elif [ ! -e "$netsubdir/$p" ] && [ ! -L "$HOME/$p" ]; then
+            echo -n "MOVE: "; mv -v "$HOME/$p" "$netsubdir/$p"
+            echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p$"
+        elif [ ! -L "$HOME/$p" ]; then # Both path exist, no symlink
+             if [ -d "$HOME/$p" ]; then
+                 T=$(mktemp -u --directory "$HOME/$p.XXX")
+             else
+                 T=$(mktemp -u "$HOME/$p.XXX")
+             fi
+             echo -n "BACKUP: "; mv -v "$HOME/$p" "$T"
+             echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p$"
+        else
+            to=$(readlink "$HOME/$p")
+            if [ "$to" != "$netsubdir/$p" ]; then
+                warn "Warning: '$HOME/$p' pointe sur '$to' au lieu de '$netsubdir/$p'."
+            fi
+        fi
+    done
+
+    warn "Warning: les chemins suivants n'existent pas et n'ont pas été liés:"
+    for post in "${postponed[@]}"; do
+        printf "  %s\n" "$post" >&2
+    done
+    warn "Si ceux-ci sont créés durant le TP, relancez $prog à la fin de la séance."
+}
+
+upgrade() {
+    :
 # upgrade command:
 # - curl -OL https://github.com/erikmd/tpenv/raw/master/tpenv; chmod a+x tpenv
 # - Echo status (if the new script is different)
@@ -55,6 +181,108 @@ die_hard "netdir:" "$netdir"
 #   - Update the standard list field, don’t touch the includes, excludes fields
 #   - Echo status (if _tpenv changed)
 # - If $netdir/_tpenv doesn’t exists: Echo warning; Run init_empty
+}
+
+usage() {
+    cat >&2 <<EOF
+$prog version $version $ts
+
+Syntaxe :
+  $prog [-v] # crée ou met à jour les liens symboliques
+             # entre ~/ et $netdir
+
+  $prog --upgrade  # met à jour le script $prog
+                   # et la liste des liens symboliques à inclure
+
+  $prog --help  # affiche cette aide
+
+Résumé :
+  $prog est un script permettant de sauvegarder l'environnement local
+  de TP (dossiers ou fichiers à la racine du répertoire ~/) en créant
+  des liens symboliques vers le dossier $netdir,
+  celui-ci étant synchronisé.
+
+  Il suffit d'exécuter la commande $prog dans un terminal, une fois
+  durant le TP sous Linux (par exemple au début de la séance).
+
+  La liste des fichiers ou dossiers devant être ainsi sauvegardés est
+  stockées dans 3 fichiers :
+    $f_std  # liste standard
+    $f_includes
+    $f_excludes
+
+  La commande "$prog --upgrade" permet de mettre à jour la liste standard.
+  Si besoin, vous pouvez modifier les 2 derniers fichiers (initialement vides)
+  pour spécifier une liste personnalisée de chemins à inclure ou exclure.
+EOF
+}
+
+main() {
+    check_windows
+
+    command="default"
+    # Parsing arguments
+    for arg; do
+        case "$arg" in
+            "--help")
+                usage
+                exit 0
+                ;;
+            "--upgrade")
+                command="upgrade"
+                ;;
+            "-v")
+                verbose="true"
+                ;;
+            *)
+                warn "Erreur: argument invalide '$arg'."
+                usage
+                exit 1
+                ;;
+        esac
+    done
+
+    case "$command" in
+        "default")
+            sync
+            ;;
+        "upgrade")
+            die_hard "Upgrade: not implemented."
+            ;;
+    esac
+}
+
+main "$@"
+
+# Put this script in $netsubdir/bin, which should be in the $PATH
+#
+# help command:
+# - Run usage
+#
+# sync (default) command:
+# - Check if $netdir exists (otherwise die_hard)
+# - If $config doesn’t exists: Echo warning; Run init_empty
+# - Retrieve the paths of $config; Echo (number of) custom incl./excl.
+# - Foreach path $p:
+#   - If $HOME/$p doesn’t exist & $netsubdir/$p doesn’t exist: Echo no-op
+#   - If $HOME/$p exists & $netsubdir/$p doesn’t exist: Move(§); Symlink
+#   - If $HOME/$p exists & $netsubdir/$p exists & symlink: No-op
+#   - If $HOME/$p exists & $netsubdir/$p exists & no-ln: Rename-Left+Echo; Symlink
+#   - If $HOME/$p doesn’t exist & $netsubdir/$p exists: Symlink
+# (§)Remark: the move step could be done using mv, or something else…
+#
+# init_empty algorithm:
+# - Copy default file contents to $config
+#
+# upgrade command:
+# - curl -OL https://github.com/erikmd/tpenv/raw/master/tpenv; chmod a+x tpenv
+# - Echo status (if the new script is different)
+# - Check if $netdir exists (otherwise die_hard)
+# - If $config exists:
+#   - Check if its format changed and should be migrated
+#   - Update the standard list field, don’t touch the includes, excludes fields
+#   - Echo status (if _tpenv changed)
+# - If $config doesn’t exists: Echo warning; Run init_empty
 #
 # _tpenv=_tpenv.json:
 # { "version": "1",
@@ -67,7 +295,6 @@ die_hard "netdir:" "$netdir"
 # supporting #-based comments (with a description)
 #
 # Remarks:
-# Check whether EOLs are Linux or Windows-specific ?
-# Other checks ?
-# Check if tpenv itself is in $netdir/bin ?
-# Fail if run from Windows ?
+# * DONE Fail if run from Windows ?
+# * DONE Cope with Linux/Windows-specific EOLs
+# * Check if tpenv itself is in $netsubdir/bin ?
