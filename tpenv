@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 19:16:22 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 19:17:32 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -181,7 +181,7 @@ upgrade_config() {
     curl -o "$f_std.new" -L "$url/std_includes.txt"
 
     if ! diff -q -- "$f_std" "$f_std.new"; then
-        warn "Info: La configuration '$f_std' a été mise à jour:"
+        warn "# La configuration '$f_std' a été mise à jour:"
         diff -- "$f_std" "$f_std.new"
         mv -v -f -- "$f_std.new" "$f_std"
     fi
@@ -196,7 +196,7 @@ upgrade() {
     if ! diff -q -- "$src" "$src.new"; then
         mv -f -- "$src.new" "$src"
         chmod a+x "$src"
-        warn "Info: $prog a été mis à jour (cf.  $prog --version)"
+        warn "# $prog a été mis à jour (cf.  $prog --version)"
     fi
 
     upgrade_config
