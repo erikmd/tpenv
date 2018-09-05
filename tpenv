@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 21:51:02 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 22:30:32 emartind>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -199,7 +199,7 @@ upgrade_config() {
 
     if ! diff -q -- "$f_std" "$f_std.new"; then
         warn "# La configuration '$f_std' a été mise à jour:"
-        diff -- "$f_std" "$f_std.new"
+        diff -u0 -- "$f_std" "$f_std.new"
         mv -v -f -- "$f_std.new" "$f_std"
     else
         rm -f -- "$f_std.new"
