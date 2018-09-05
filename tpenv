@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 15:06:09 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 15:12:55 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -88,9 +88,9 @@ is_among() {
 check_unwanted_chars_in_line_of_file() {
     local line="$1"
     local file="$2"
+    [[ $line =~ "#" ]] && die_hard "Erreur: caractère '#' interdit dans $file (sauf en début de ligne)."
     [[ $line =~ [?*] ]] && die_hard "Erreur: caractères '?' et '*' interdits dans $file."
     [[ $line =~ "/" ]] && die_hard "Erreur: caractère '/' interdit dans $file."
-    [[ $line = "#" ]] && die_hard "Erreur: caractère '#' interdit dans $file (sauf en début de ligne)."
     [[ $line = "." ]] && die_hard "Erreur: dossier '.' interdit dans $file."
     [[ $line = ".." ]] && die_hard "Erreur: dossier '..' interdit dans $file."
 }
@@ -141,13 +141,13 @@ sync() {
     for p in "${includes[@]}"; do
         if [ ! -e "$HOME/$p" ] && [ ! -L "$HOME/$p" ]; then
             if [ ! -e "$netsubdir/$p" ]; then
-                postponed+=( "$netsubdir/$p" )
+                postponed+=( "$p" )
             else
-                echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p$"
+                echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
             fi
         elif [ ! -e "$netsubdir/$p" ] && [ ! -L "$HOME/$p" ]; then
             echo -n "MOVE: "; mv -v "$HOME/$p" "$netsubdir/$p"
-            echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p$"
+            echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
         elif [ ! -L "$HOME/$p" ]; then # Both path exist, no symlink
              if [ -d "$HOME/$p" ]; then
                  T=$(mktemp -u --directory "$HOME/$p.XXX")
@@ -155,7 +155,7 @@ sync() {
                  T=$(mktemp -u "$HOME/$p.XXX")
              fi
              echo -n "BACKUP: "; mv -v "$HOME/$p" "$T"
-             echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p$"
+             echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
         else
             to=$(readlink "$HOME/$p")
             if [ "$to" != "$netsubdir/$p" ]; then
@@ -166,7 +166,7 @@ sync() {
 
     warn "Warning: les chemins suivants n'existent pas et n'ont pas été liés:"
     for post in "${postponed[@]}"; do
-        printf "  %s\n" "$post" >&2
+        printf -- "- %s\n" "$post" >&2
     done
     warn "Si ceux-ci sont créés durant le TP, relancez $prog à la fin de la séance."
 }
