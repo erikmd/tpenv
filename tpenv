@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 22:30:32 emartind>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 22:38:57 emartind>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -181,11 +181,13 @@ sync() {
         fi
     done
 
-    warn "\nWarning: les chemins suivants n'existent pas et n'ont donc pas été liés:"
-    for post in "${postponed[@]}"; do
-        printf -- "- %s\n" "$post" >&2
-    done
-    warn "Si ceux-ci sont créés durant le TP, relancez $prog à la fin de la séance."
+    if [ ${#postponed[@]} -gt 0 ]; then
+	warn "\nWarning: les chemins suivants n'existent pas et n'ont donc pas été liés:"
+	for post in "${postponed[@]}"; do
+            printf -- "- %s\n" "$post" >&2
+	done
+	warn "Si ceux-ci sont créés durant le TP, relancez $prog à la fin de la séance."
+    fi
 
     warn_if_other_folder
 }
