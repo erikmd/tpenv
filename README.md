@@ -52,7 +52,11 @@ Si un fichier ou sous-dossier important de `~/` n'est pas pris en
 compte par la version actuelle du script, vous pouvez l'ajouter
 directement au fichier `~/Documents/Linux/_tpenv/custom_includes.txt`
 ou bien demander son ajout en ouvrant une
-[nouvelle issue GitHub](https://github.com/erikmd/tpenv/issues/new).
+[issue](https://github.com/erikmd/tpenv/issues) sur ce dépôt GitHub.
+
+Si vous identifiez un bug, créez une
+[issue](https://github.com/erikmd/tpenv/issues) ou envoyez-moi un
+[e-mail](https://github.com/erikmd).
 
 ## Auteur et licence
 
