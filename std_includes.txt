@@ -3,6 +3,9 @@
 .bash_profile
 .bashrc
 .bash_history
+.profile
+.gitconfig
+.ssh
 
 # OCaml
 .emacs
