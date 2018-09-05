@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 19:17:32 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 19:22:13 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -26,6 +26,7 @@ f_includes="$config/custom_includes.txt"
 f_excludes="$config/custom_excludes.txt"
 url="https://github.com/erikmd/tpenv/raw/master"
 verbose="false"
+curl_error="Erreur: Problème réseau ?"
 
 check_windows() {
     [ "$(uname -s)" = "Linux" ] || die_hard "Erreur: ce script est conçu pour Linux uniquement."
@@ -53,7 +54,7 @@ check_config_or_init_empty() {
 
     if [ ! -f "$f_std" ]; then
         warn "Récupération du fichier '$f_std'..."
-        ( set -x; curl -o "$f_std" -L "$url/std_includes.txt" )
+        ( set -x; curl -o "$f_std" -L "$url/std_includes.txt" ) || { ret=$?; warn "$curl_error"; exit $ret; }
         inspect="true"
     fi
     if [ ! -f "$f_includes" ]; then
@@ -178,7 +179,7 @@ upgrade_config() {
     ensure_dir_exists "$netsubdir"
     ensure_dir_exists "$config"
 
-    curl -o "$f_std.new" -L "$url/std_includes.txt"
+    curl -o "$f_std.new" -L "$url/std_includes.txt" || { ret=$?; warn "$curl_error"; exit $ret; }
 
     if ! diff -q -- "$f_std" "$f_std.new"; then
         warn "# La configuration '$f_std' a été mise à jour:"
@@ -191,7 +192,7 @@ upgrade() {
     local src
     src=$( readlink -f "${BASH_SOURCE[0]}" )
 
-    curl -o "$src.new" -L "$url/tpenv"
+    curl -o "$src.new" -L "$url/tpenv" || { ret=$?; warn "$curl_error"; exit $ret; }
 
     if ! diff -q -- "$src" "$src.new"; then
         mv -f -- "$src.new" "$src"
