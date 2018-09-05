@@ -45,3 +45,17 @@ pour spécifier une liste personnalisée de chemins à inclure ou exclure.
 
 Pour plus de facilité, placez le script tpenv dans le dossier
 ~/Documents/Linux/bin (qui est synchronisé).
+
+## Note aux enseignants
+
+Si un fichier ou sous-dossier important de `~/` n'est pas pris en
+compte par la version actuelle du script, vous pouvez l'ajouter
+directement au fichier `~/Documents/Linux/_tpenv/custom_includes.txt`
+ou bien demander son ajout en ouvrant une
+[nouvelle issue GitHub](https://github.com/erikmd/tpenv/issues/new).
+
+## Auteur et licence
+
+Outil conçu par [Érik Martin-Dorel](https://github.com/erikmd),
+`tpenv` est un logiciel libre distribué sous licence
+[BSD-3](https://opensource.org/licenses/BSD-3-Clause).
