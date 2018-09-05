@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 15:12:55 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 15:14:46 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -220,6 +220,8 @@ EOF
 
 main() {
     check_windows
+
+    echo "# $prog version $version" >&2
 
     command="default"
     # Parsing arguments
