@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 15:05:16 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-05 15:06:09 emartin>"; ts=${ts#Time-stamp: }
 version="0.1-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -52,6 +52,7 @@ check_config_or_init_empty() {
     inspect="false"
 
     if [ ! -f "$f_std" ]; then
+        warn "Récupération du fichier '$f_std'..."
         ( set -x; curl -o "$f_std" -L "$url/std_includes.txt" )
         inspect="true"
     fi
