@@ -6,21 +6,15 @@
 .profile
 .gitconfig
 .ssh
-
-# OCaml
 .emacs
 .emacs.d
-.opam
 
 # Java+IntelliJ
 .m2
 .IntelliJIdea2018.1
-IdeaProjects
 .java
 .gnome
 
 # JavaScript+WebStorm
 .WebStorm2018.1
-WebstormProjects
-.npm
 .vue-templates
