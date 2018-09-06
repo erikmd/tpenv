@@ -27,9 +27,8 @@ de TP (dossiers ou fichiers à la racine du répertoire `~/`) en créant
 des liens symboliques vers le dossier `~/Documents/Linux`,
 celui-ci étant synchronisé.
 
-Il suffit d'exécuter la commande `tpenv` dans un terminal, une fois
-durant le TP sous Linux (au moins à la fin de la première séance, puis
-au début de chaque nouvelle séance).
+Il suffit d'exécuter la commande `tpenv` dans un terminal, au début de
+chaque TP sous Linux.
 
 La liste des fichiers ou dossiers devant être ainsi sauvegardés est
 stockée dans 3 fichiers :

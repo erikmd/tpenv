@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-07 00:50:12 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-07 01:02:22 emartin>"; ts=${ts#Time-stamp: }
 version="0.2-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -278,9 +278,8 @@ Résumé :
   des liens symboliques vers le dossier $netsubdir,
   celui-ci étant synchronisé.
 
-  Il suffit d'exécuter la commande $prog dans un terminal, une fois
-  durant le TP sous Linux (au moins à la fin de la première séance, puis
-  au début de chaque nouvelle séance).
+  Il suffit d'exécuter la commande $prog dans un terminal, au début de
+  chaque TP sous Linux.
 
   La liste des fichiers ou dossiers devant être ainsi sauvegardés est
   stockée dans 3 fichiers :
