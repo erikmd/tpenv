@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-05 22:38:57 emartind>"; ts=${ts#Time-stamp: }
-version="0.1-git"
+ts="Time-stamp: <2018-09-07 00:50:12 emartin>"; ts=${ts#Time-stamp: }
+version="0.2-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
 #
@@ -104,9 +104,55 @@ check_unwanted_chars_in_line_of_file() {
     local file="$2"
     [[ $line =~ "#" ]] && die_hard "Erreur: caractère '#' interdit dans $file (sauf en début de ligne)."
     [[ $line =~ [?*] ]] && die_hard "Erreur: caractères '?' et '*' interdits dans $file."
-    [[ $line =~ "/" ]] && die_hard "Erreur: caractère '/' interdit dans $file."
+    [[ $line =~ "/" ]] && die_hard "Erreur: caractère '/' interdit dans $file (sauf en fin de ligne)."
     [[ $line = "." ]] && die_hard "Erreur: dossier '.' interdit dans $file."
     [[ $line = ".." ]] && die_hard "Erreur: dossier '..' interdit dans $file."
+}
+
+process_files_or_dirs() {
+    local is_dir="$1"
+    local p
+    shift
+    for p; do
+        if [ ! -e "$HOME/$p" ] && [ ! -L "$HOME/$p" ]; then
+            if [ ! -e "$netsubdir/$p" ]; then
+                # If $HOME/$p doesn’t exist & $netsubdir/$p doesn’t exist: (Mkdir/Touch); Symlink
+
+                if [ "$is_dir" = "true" ]; then
+                    mkdir -v "$netsubdir/$p" || { ret=$?; warn "Erreur: mkdir '$netsubdir/$p'."; exit $ret; }
+                else
+                    touch "$netsubdir/$p"
+                fi
+                echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
+            else
+                # If $HOME/$p doesn’t exist & $netsubdir/$p exists: Symlink
+
+                echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
+            fi
+        elif [ ! -e "$netsubdir/$p" ] && [ ! -L "$HOME/$p" ]; then
+            # If $HOME/$p exists & $netsubdir/$p doesn’t exist: Move; Symlink
+
+            echo -n "MOVE: "; mv -v "$HOME/$p" "$netsubdir/$p"
+            echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
+        elif [ ! -L "$HOME/$p" ]; then
+            # If $HOME/$p exists & $netsubdir/$p exists & no symlink: Rename-Left; Symlink
+
+             if [ -d "$HOME/$p" ]; then
+                 T=$(mktemp -u --directory "$HOME/$p.XXX")
+             else
+                 T=$(mktemp -u "$HOME/$p.XXX")
+             fi
+             echo -n "BACKUP: "; mv -v "$HOME/$p" "$T"
+             echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
+        else
+            to=$(readlink "$HOME/$p")
+            # If $HOME/$p exists & $netsubdir/$p exists & good symlink: No-op
+
+            if [ "$to" != "$netsubdir/$p" ]; then
+                warn "Warning: '$HOME/$p' pointe sur '$to' au lieu de '$netsubdir/$p'."
+            fi
+        fi
+    done
 }
 
 sync() {
@@ -117,13 +163,15 @@ sync() {
     readarray -t raw_includes < "$f_includes"
     readarray -t raw_excludes < "$f_excludes"
 
-    declare -a includes
+    declare -a includes_dirs
+    declare -a includes_files
     declare -a excludes
     cr=$'\015'
     # Remove comments and duplicates
     for line in "${raw_excludes[@]}"; do
         line=${line%$cr}  # skip trailing CR
         [[ $line =~ ^[$' \t']*$ ]] && continue  # skip blank lines
+        [[ $line =~ .. ]] && line=${line%/}  # skip trailing slash FOR EXCLUDES
         if [[ ! $line =~ ^"#" ]] && ! is_among "$line" "${excludes[@]}"; then
             check_unwanted_chars_in_line_of_file "$line" "'$f_excludes'"
             excludes+=( "$line" )
@@ -132,62 +180,35 @@ sync() {
     for line in "${raw_std[@]}" "${raw_includes[@]}"; do
         line=${line%$cr}  # skip trailing CR
         [[ $line =~ ^[$' \t']*$ ]] && continue  # skip blank lines
-        if [[ ! $line =~ ^"#" ]] && \
-               ! is_among "$line" "${includes[@]}" "${excludes[@]}"; then
-            check_unwanted_chars_in_line_of_file "$line" "'$f_std' et '$f_includes'"
-            includes+=( "$line" )
+        if [[ ! $line =~ ^"#" ]]; then
+            if [[ $line =~ /$ ]]; then # directory
+                line=${line%/}
+                if ! is_among "$line" "${includes_dirs[@]}" "${excludes[@]}"; then
+                    check_unwanted_chars_in_line_of_file "$line" "'$f_std' et '$f_includes'"
+                    includes_dirs+=( "$line" )
+                fi
+            else # file
+                if ! is_among "$line" "${includes_files[@]}" "${excludes[@]}"; then
+                    check_unwanted_chars_in_line_of_file "$line" "'$f_std' et '$f_includes'"
+                    includes_files+=( "$line" )
+                fi
+            fi
         fi
     done
 
     if [ "$verbose" = "true" ]; then
-        warn "Info: $prog prend en compte les fichier/dossiers suivants:"
-        for incl in "${includes[@]}"; do
+        warn "Info: $prog prend en compte les fichiers suivants:"
+        for incl in "${includes_files[@]}"; do
+            printf -- "- %s\n" "$incl" >&2
+        done
+        warn "Info: $prog prend en compte les dossiers suivants:"
+        for incl in "${includes_dirs[@]}"; do
             printf -- "- %s\n" "$incl" >&2
         done
     fi
 
-# - Foreach path $p:
-#   - If $HOME/$p doesn’t exist & $netsubdir/$p doesn’t exist: Echo no-op
-#   - If $HOME/$p exists & $netsubdir/$p doesn’t exist: Move(§); Symlink
-#   - If $HOME/$p exists & $netsubdir/$p exists & symlink: No-op
-#   - If $HOME/$p exists & $netsubdir/$p exists & no-ln: Rename-Left+Echo; Symlink
-#   - If $HOME/$p doesn’t exist & $netsubdir/$p exists: Symlink
-
-    declare -a postponed
-
-    for p in "${includes[@]}"; do
-        if [ ! -e "$HOME/$p" ] && [ ! -L "$HOME/$p" ]; then
-            if [ ! -e "$netsubdir/$p" ]; then
-                postponed+=( "$p" )
-            else
-                echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
-            fi
-        elif [ ! -e "$netsubdir/$p" ] && [ ! -L "$HOME/$p" ]; then
-            echo -n "MOVE: "; mv -v "$HOME/$p" "$netsubdir/$p"
-            echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
-        elif [ ! -L "$HOME/$p" ]; then # Both path exist, no symlink
-             if [ -d "$HOME/$p" ]; then
-                 T=$(mktemp -u --directory "$HOME/$p.XXX")
-             else
-                 T=$(mktemp -u "$HOME/$p.XXX")
-             fi
-             echo -n "BACKUP: "; mv -v "$HOME/$p" "$T"
-             echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
-        else
-            to=$(readlink "$HOME/$p")
-            if [ "$to" != "$netsubdir/$p" ]; then
-                warn "Warning: '$HOME/$p' pointe sur '$to' au lieu de '$netsubdir/$p'."
-            fi
-        fi
-    done
-
-    if [ ${#postponed[@]} -gt 0 ]; then
-	warn "\nWarning: les chemins suivants n'existent pas et n'ont donc pas été liés:"
-	for post in "${postponed[@]}"; do
-            printf -- "- %s\n" "$post" >&2
-	done
-	warn "Si ceux-ci sont créés durant le TP, relancez $prog à la fin de la séance."
-    fi
+    process_files_or_dirs "false" "${includes_files[@]}"
+    process_files_or_dirs "true" "${includes_dirs[@]}"
 
     warn_if_other_folder
 }

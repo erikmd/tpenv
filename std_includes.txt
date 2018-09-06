@@ -1,20 +1,22 @@
-# Main
+# Main config files (not directories)
 .bash_logout
 .bash_profile
 .bashrc
 .bash_history
 .profile
 .gitconfig
-.ssh
 .emacs
-.emacs.d
 
-# Java+IntelliJ
-.m2
-.IntelliJIdea2018.1
-.java
-.gnome
+# Main config dirs
+.ssh/
+.emacs.d/
+
+# Java+IntelliJ config dirs
+.m2/
+.IntelliJIdea2018.1/
+.java/
+.gnome/
 
 # JavaScript+WebStorm
-.WebStorm2018.1
-.vue-templates
+.WebStorm2018.1/
+.vue-templates/
