@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-07 13:27:16 emartin>"; ts=${ts#Time-stamp: }
-version="0.3-git"
+ts="Time-stamp: <2018-09-07 13:29:36 emartin>"; ts=${ts#Time-stamp: }
+version="1.0.0"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
 #
