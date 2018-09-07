@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-07 10:46:30 emartin>"; ts=${ts#Time-stamp: }
-version="0.2-git"
+ts="Time-stamp: <2018-09-07 13:27:16 emartin>"; ts=${ts#Time-stamp: }
+version="0.3-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
 #
@@ -238,20 +238,19 @@ upgrade() {
     local src
     src=$( readlink -f "${BASH_SOURCE[0]}" )
 
+    upgrade_config
+
+    warn_if_other_folder
+
     rm -f -- "$src.new"
     curl -o "$src.new" -L "$url/tpenv" || { ret=$?; warn "$curl_error"; exit $ret; }
 
     if ! diff -q -- "$src" "$src.new"; then
-        mv -f -- "$src.new" "$src"
-        chmod a+x "$src"
-        warn "# $prog a été mis à jour (cf.  $prog --version)\n"
+        warn "# $prog va être mis à jour (cf.  $prog --version)"
+        exec bash -c "mv -v -f -- \"$src.new\" \"$src\" && chmod a+x \"$src\" && echo 'Mise à jour OK.'"
     else
         rm -f -- "$src.new"
     fi
-
-    upgrade_config
-
-    warn_if_other_folder
 }
 
 version() {
