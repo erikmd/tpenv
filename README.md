@@ -30,8 +30,8 @@ celui-ci étant synchronisé.
 Il suffit d'exécuter la commande `tpenv` dans un terminal, au début de
 chaque TP sous Linux.
 
-La liste des fichiers ou dossiers devant être ainsi sauvegardés est
-stockée dans 3 fichiers :
+La liste des fichiers ou dossiers de configuration devant être ainsi
+sauvegardés est stockée dans 3 fichiers :
 
 - `~/Documents/Linux/_tpenv/std_includes.txt` ([liste standard](./std_includes.txt))
 - `~/Documents/Linux/_tpenv/custom_includes.txt`
@@ -39,8 +39,12 @@ stockée dans 3 fichiers :
 
 La commande `tpenv --upgrade` permet de mettre à jour le script et
 la liste standard.
-Si besoin, vous pouvez modifier les 2 derniers fichiers (initialement vides)
-pour spécifier une liste personnalisée de chemins à inclure ou exclure.
+Si besoin, vous pouvez modifier les 2 derniers fichiers (initialement
+vides) pour spécifier une liste personnalisée de fichiers ou dossiers
+à inclure ou exclure.
+Les noms de dossier doivent se terminer par `/`. Les caractères `?` et
+`*` ne sont pas autorisés, de même que le caractère `/` à une autre
+position qu'en fin de ligne.
 
 Pour plus de facilité, placez le script tpenv dans le dossier
 `~/Documents/Linux/bin` (qui est synchronisé).
