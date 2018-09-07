@@ -17,6 +17,6 @@
 .java/
 .gnome/
 
-# JavaScript+WebStorm
+# JavaScript+WebStorm config dirs
 .WebStorm2018.1/
 .vue-templates/

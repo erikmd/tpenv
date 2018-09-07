@@ -7,7 +7,8 @@ Exécuter dans un terminal :
 ```
 mkdir -p ~/Documents/Linux/bin && cd ~/Documents/Linux/bin
 curl -OL https://github.com/erikmd/tpenv/raw/master/tpenv && chmod a+x tpenv
-./tpenv
+./tpenv  # une première fois pour initialiser la configuration
+./tpenv  # une deuxième fois pour effectuer la synchronisation
 ```
 
 ## Syntaxe
