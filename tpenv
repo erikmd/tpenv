@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ts="Time-stamp: <2018-09-07 01:02:22 emartin>"; ts=${ts#Time-stamp: }
+ts="Time-stamp: <2018-09-07 10:21:51 emartin>"; ts=${ts#Time-stamp: }
 version="0.2-git"
 #
 # Copyright (c) 2018  Érik Martin-Dorel
@@ -132,7 +132,12 @@ process_files_or_dirs() {
         elif [ ! -e "$netsubdir/$p" ] && [ ! -L "$HOME/$p" ]; then
             # If $HOME/$p exists & $netsubdir/$p doesn’t exist: Move; Symlink
 
-            echo -n "MOVE: "; mv -v "$HOME/$p" "$netsubdir/$p"
+            if [ "$verbose" = "true" ]; then
+                echo -n "MOVE: "; mv -v "$HOME/$p" "$netsubdir/$p"
+            else
+                echo "MOVE: '$HOME/$p' -> '$netsubdir/$p'..."
+                mv "$HOME/$p" "$netsubdir/$p"
+            fi
             echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
         elif [ ! -L "$HOME/$p" ]; then
             # If $HOME/$p exists & $netsubdir/$p exists & no symlink: Rename-Left; Symlink
@@ -142,7 +147,7 @@ process_files_or_dirs() {
              else
                  T=$(mktemp -u "$HOME/$p.XXX")
              fi
-             echo -n "BACKUP: "; mv -v "$HOME/$p" "$T"
+             echo -n "RENAME: "; mv -v "$HOME/$p" "$T"
              echo -n "LINK: "; ln -sv "$netsubdir/$p" "$HOME/$p"
         else
             to=$(readlink "$HOME/$p")
