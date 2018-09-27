@@ -20,3 +20,6 @@
 # JavaScript+WebStorm config dirs
 .WebStorm2018.1/
 .vue-templates/
+
+# Default dir for screenshots in French locale
+Images/
